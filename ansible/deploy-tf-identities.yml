@@ -22,23 +22,28 @@
       private: no
 
   tasks:
+    - name: Get list of IAM roles
+      set_fact:
+        iam_role_arns:
+          - backend_access_role
+          - same_account_exec_role
+          - account_0001_exec_role
+
     - name: Stack for IAM group to use Terraform
       register: iam_group
       amazon.aws.cloudformation:
         stack_name: "{{ org_prefix }}-{{ stack_prefix }}-group"
         region: us-east-1
         state: "present"
-        template: "../cloudformation/managing-account/tf-identity/cfn-tf-access-group.yml"
+        template: "../cloudformation/managing-account/tf-identities/cfn-tf-access-group.yml"
         template_parameters:
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
-          TfArnBackendAccessRole: "{{ backend_access_role }}"
-          TfArnSameAccountExecRole: "{{ same_account_exec_role }}"
-          TfArnExecRole0001: "{{ account_0001_exec_role }}"
+          RoleArns: "{{ iam_role_arns | join(',') }}"
         termination_protection: yes
         tags:
           "{{ org_prefix }}:source": ansible
           "{{ org_prefix }}:namespace": "{{ org_prefix }}"
-          "{{ org_prefix }}:purpose": "noninteractive"
+          "{{ org_prefix }}:purpose": "automation"
           "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
 
     - name: Stack for IAM user to use Terraform from CI
@@ -46,7 +51,7 @@
         stack_name: "{{ org_prefix }}-{{ stack_prefix }}-ci-user"
         region: us-east-1
         state: "present"
-        template: "../cloudformation/managing-account/tf-identity/cfn-tf-access-user.yml"
+        template: "../cloudformation/managing-account/tf-identities/cfn-tf-access-user.yml"
         template_parameters:
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
           TfAccessGroup: "{{ iam_group.stack_outputs.TfAccessGroup }}"
@@ -55,5 +60,5 @@
         tags:
           "{{ org_prefix }}:source": ansible
           "{{ org_prefix }}:namespace": "{{ org_prefix }}"
-          "{{ org_prefix }}:purpose": "noninteractive"
+          "{{ org_prefix }}:purpose": "automation"
           "{{ org_prefix }}:prefix": "{{ stack_prefix }}"

@@ -5,26 +5,20 @@ Parameters:
   Prefix:
     Type: String
     Description: The prefix for AWS resource names
-  TfArnBackendAccessRole:
+  RoleArns:
     Type: String
-    Description: The ARN of the role to access Terraform backend
-  TfArnSameAccountExecRole:
-    Type: String
-    Description: The ARN of the role in the same AWS account
-  TfArnExecRole0001:
-    Type: String
-    Description: The ARN of the role in an account that is being managed
+    Description: The ARNs of the roles that the group can assume
 
 Resources:
   TfAccessGroup:
     Type: AWS::IAM::Group
     Properties:
-      GroupName: !Sub ${Prefix}-users
+      GroupName: !Sub ${Prefix}-access-users
 
   TfManagedAccountsExecPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub ${Prefix}-exec-policy
+      PolicyName: !Sub ${Prefix}-access-policy
       Groups:
         - !Ref TfAccessGroup
       PolicyDocument:
@@ -33,10 +27,7 @@ Resources:
           Effect: Allow
           Action:
             - sts:AssumeRole
-          Resource:
-            - !Ref TfArnBackendAccessRole
-            - !Ref TfArnSameAccountExecRole
-            - !Ref TfArnExecRole0001
+          Resource: !Split [",", !Ref RoleArns]
 
 Outputs:
   TfAccessGroup:
