@@ -43,9 +43,9 @@
           TfDdbLockingArn: "{{ ddb_table_arn }}"
         termination_protection: yes
         tags:
-          "sje:source": ansible
-          "sje:namespace": "{{ org_prefix }}"
-          "sje:prefix": "{{ stack_prefix }}"
+          "custom:source": ansible
+          "custom:namespace": "{{ org_prefix }}"
+          "custom:prefix": "{{ stack_prefix }}"
 
     - name: Stack for IAM group to use Terraform
       register: iam_group
@@ -61,10 +61,10 @@
           TfArnExecRole0001: "{{ account_0001_exec_role }}"
         termination_protection: yes
         tags:
-          "sje:source": ansible
-          "sje:namespace": "{{ org_prefix }}"
-          "sje:purpose": "noninteractive"
-          "sje:prefix": "{{ stack_prefix }}"
+          "custom:source": ansible
+          "custom:namespace": "{{ org_prefix }}"
+          "custom:purpose": "noninteractive"
+          "custom:prefix": "{{ stack_prefix }}"
 
     - name: Stack for IAM user to use Terraform from Azure DevOps
       amazon.aws.cloudformation:
@@ -78,7 +78,7 @@
           UserName: ado
         termination_protection: yes
         tags:
-          "sje:source": ansible
-          "sje:namespace": "{{ org_prefix }}"
-          "sje:purpose": "noninteractive"
-          "sje:prefix": "{{ stack_prefix }}"
+          "custom:source": ansible
+          "custom:namespace": "{{ org_prefix }}"
+          "custom:purpose": "noninteractive"
+          "custom:prefix": "{{ stack_prefix }}"

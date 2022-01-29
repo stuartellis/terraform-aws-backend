@@ -31,9 +31,9 @@
           Prefix: "{{ stack_prefix }}"
         termination_protection: yes
         tags:
-          "sje:source": ansible
-          "sje:namespace": "{{ org_prefix }}"
-          "sje:prefix": "{{ stack_prefix }}"
+          "custom:source": ansible
+          "custom:namespace": "{{ org_prefix }}"
+          "custom:prefix": "{{ stack_prefix }}"
 
     - name: Stack for replica bucket in {{ replica_region_001 }}
       register: s3_bucket_replica_001
@@ -48,9 +48,9 @@
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}-r001"
         termination_protection: yes
         tags:
-          "sje:source": ansible
-          "sje:namespace": "{{ org_prefix }}"
-          "sje:prefix": "{{ stack_prefix }}"
+          "custom:source": ansible
+          "custom:namespace": "{{ org_prefix }}"
+          "custom:prefix": "{{ stack_prefix }}"
 
     - name: Stack for keys in {{ replica_region_002 }}
       register: kms_keys_replica_002
@@ -64,9 +64,9 @@
           Prefix: "{{ stack_prefix }}"
         termination_protection: yes
         tags:
-          "sje:source": ansible
-          "sje:namespace": "{{ org_prefix }}"
-          "sje:prefix": "{{ stack_prefix }}"
+          "custom:source": ansible
+          "custom:namespace": "{{ org_prefix }}"
+          "custom:prefix": "{{ stack_prefix }}"
 
     - name: Stack for replica bucket in {{ replica_region_002 }}
       register: s3_bucket_replica_002
@@ -81,9 +81,9 @@
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}-r002"
         termination_protection: yes
         tags:
-          "sje:source": ansible
-          "sje:namespace": "{{ org_prefix }}"
-          "sje:prefix": "{{ stack_prefix }}"
+          "custom:source": ansible
+          "custom:namespace": "{{ org_prefix }}"
+          "custom:prefix": "{{ stack_prefix }}"
 
     - name: Stack for keys in {{ primary_region }}
       register: kms_keys_primary
@@ -97,9 +97,9 @@
           Prefix: "{{ stack_prefix }}"
         termination_protection: yes
         tags:
-          "sje:source": ansible
-          "sje:namespace": "{{ org_prefix }}"
-          "sje:prefix": "{{ stack_prefix }}"
+          "custom:source": ansible
+          "custom:namespace": "{{ org_prefix }}"
+          "custom:prefix": "{{ stack_prefix }}"
 
     - name: Stack for main bucket in {{ primary_region }}
       amazon.aws.cloudformation:
@@ -119,9 +119,9 @@
           Replica002BucketRegion: "{{ replica_region_002 }}"
         termination_protection: yes
         tags:
-          "sje:source": ansible
-          "sje:namespace": "{{ org_prefix }}"
-          "sje:prefix": "{{ stack_prefix }}"
+          "custom:source": ansible
+          "custom:namespace": "{{ org_prefix }}"
+          "custom:prefix": "{{ stack_prefix }}"
 
     - name: Stack for DynamoDB in {{ primary_region }}
       amazon.aws.cloudformation:
@@ -134,6 +134,6 @@
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
         termination_protection: yes
         tags:
-          "sje:source": ansible
-          "sje:namespace": "{{ org_prefix }}"
-          "sje:prefix": "{{ stack_prefix }}"
+          "custom:source": ansible
+          "custom:namespace": "{{ org_prefix }}"
+          "custom:prefix": "{{ stack_prefix }}"
