@@ -19,7 +19,9 @@ This assumes that you have two AWS accounts:
 
 This is good practice. AWS accounts are free, because you are only charged for the resources that you use.
 
-You can use Terraform to control resources in the managing AWS account. The aim of this tooling is to set up the AWS resources that Terraform itself needs. These resources include an IAM user account. This account can assume the roles to access the Terraform storage, and execute Terraform on each AWS account. Your  automation can then use this account to run Terraform on AWS.
+If you wish, you can use Terraform to control resources in the managing AWS account. The aim of this tooling is to set up just the AWS resources that Terraform itself needs.
+
+The deployed resources include an IAM user account. This account can assume the roles to access the Terraform storage, and execute Terraform on each AWS account. Your automation can then use this account to run Terraform on AWS.
 
 These templates can be adapted to support larger numbers of AWS accounts.
 
