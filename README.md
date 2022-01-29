@@ -4,6 +4,8 @@ AWS backend for Terraform with Ansible and CloudFormation.
 
 These playbooks deploy a set of replicated S3 buckets and a DynamoDB table. All storage is encrypted with KMS customer-managed keys.
 
+To increase the safety of the Terraform state, the policy on the main S3 bucket prevents objects from being deleted.
+
 ## Setting Up Ansible
 
 Ansible requires Python 3. You may run Ansible on Linux, macOS or WSL.
