@@ -19,7 +19,7 @@ This is good practice. AWS accounts are free, because you are only charged for t
 
 These templates can be adapted to support larger numbers of AWS accounts.
 
-The *org_prefix* should be a short string that uniquely identifies the current organization. S3 bucket names must be globally unique across all AWS customers, so we must prefix the name of each bucket with a string that is unique to our accounts. AWS tags should be namespaced.
+The *org_prefix* should be a short string that uniquely identifies the current organization. S3 bucket names must be globally unique across all AWS customers, so we must prefix the name of each bucket with a string that is unique to our accounts. We also use the *org_prefix* to namespace AWS tags.
 
 ## Setting Up Ansible
 
