@@ -61,9 +61,13 @@ To run the Ansible playbook to deploy Terraform access for CI automation, first 
 
     ansible-playbook --connection=local ./ansible/deploy-tf-access-svc-identity.yml --extra-vars "org_prefix=YOUR-DOMAIN-NAME stack_prefix=tf-access-svc managing_account_id=MANAGING-AWS-ACCOUNT-ID kms_key_arn=PRIMARY_KMS_KEY_ARN s3_bucket_arn=arn:aws:s3:::YOUR-DOMAIN-NAME-tf-state-primary-MANAGING-AWS-ACCOUNT-ID-eu-west-2 ddb_table_arn=arn:aws:dynamodb:eu-west-2:MANAGING-AWS-ACCOUNT-ID:table/YOUR-DOMAIN-NAME-tf-state-lock-eu-west-2 same_account_exec_role=arn:aws:iam::MANAGING-AWS-ACCOUNT-ID:role/YOUR-DOMAIN-NAME-tf-exec-role account_0001_exec_role=arn:aws:iam::A-MANAGED-AWS-ACCOUNT-ID:role/YOUR-DOMAIN-NAME-tf-exec-role"
 
-Once this playbook has completed, you will have a new IAM user account. This account can assume the roles to access the Terraform storage, and execute Terraform on each AWS account. To use the IAM user, create an AWS access key.
+Once this playbook has completed, you will have a new IAM user account. This account can assume the roles to access the Terraform storage, and execute Terraform on each AWS account.
+
+To use the IAM user, create an AWS access key.
 
 ## Resources
 
+- [Terraform documentation for state storage with AWS](https://www.terraform.io/language/settings/backends/s3)
+- [Terragrunt requirements for AWS](https://terragrunt.gruntwork.io/docs/features/aws-auth/)
 - [CloudFormation for a Terraform backend, by Tibor Hercz](https://github.com/tiborhercz/tf-state-backend-s3-cloudformation) - An existing implementation, using just CloudFormation
 - [Managing Terraform Remote State with CloudFormation, by Chris Kent](https://thirstydeveloper.io/tf-skeleton/2021/02/25/part-6-protecting-state.html) - Part of a series on setting up Terraform
