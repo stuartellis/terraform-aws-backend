@@ -13,12 +13,12 @@ Resources:
   TfAccessGroup:
     Type: AWS::IAM::Group
     Properties:
-      GroupName: !Sub ${Prefix}-access-users
+      GroupName: !Sub ${Prefix}-users
 
   TfManagedAccountsExecPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub ${Prefix}-access-policy
+      PolicyName: !Sub ${Prefix}-policy
       Groups:
         - !Ref TfAccessGroup
       PolicyDocument:

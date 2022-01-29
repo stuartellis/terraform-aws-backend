@@ -17,15 +17,13 @@ This assumes that you have at least two AWS accounts:
 - A *managing* AWS account that will contain the Terraform backend
 - One or more *managed* AWS accounts that will contain resources that will be managed by Terraform
 
-This is good practice. AWS accounts are free, because you are only charged for the resources that you use.
+You should always use more than one AWS account in your infrastructure. AWS accounts are free, because you are only charged for the resources that you use.
 
 If you wish, you can use Terraform to control resources in the managing AWS account. The aim of this tooling is to set up just the AWS resources that Terraform itself needs.
 
-The deployed resources include an IAM user account. This account can assume the roles to access the Terraform storage, and execute Terraform on each AWS account. Your automation can then use this account to run Terraform on AWS.
+The deployed resources include an IAM user account. This user account can assume the roles to access the Terraform storage, and execute Terraform on each AWS account. Your automation can then use this account to run Terraform on AWS.
 
-These templates can be adapted to support larger numbers of AWS accounts.
-
-The *org_prefix* should be a short string that uniquely identifies the current organization. S3 bucket names must be globally unique across all AWS customers, so we must prefix the name of each bucket with a string that is unique to our accounts.
+The *org_prefix* should be a short string that uniquely identifies the current organization. S3 bucket names must be globally unique across all AWS customers, so we must prefix the name of each bucket with a string that is unique to our accounts. The playbooks also use the *org_prefix* to namespace the AWS tags that they apply.
 
 ## Setting Up Ansible
 
@@ -51,7 +49,7 @@ Choose appropriate regions for your resources. The examples use eu-west-2 as the
 
 The examples below take variables from the command-line. You may create YAML or JSON files for the variables instead. This example reads variables from a YAML file called **tf-identities-vars.yml**:
 
-        ansible-playbook --connection=local ./ansible/deploy-tf-identities.yml --extra-vars "@tf-identities-vars.yml"
+    ansible-playbook --connection=local ./ansible/deploy-tf-identities.yml --extra-vars "@tf-identities-vars.yml"
 
 ### Deploy IAM Roles for Running Terraform
 
