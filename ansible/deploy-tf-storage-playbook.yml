@@ -1,0 +1,139 @@
+---
+- name: Deploy CloudFormation for Terraform Storage
+  hosts: localhost
+  vars_prompt:
+    - name: org_prefix
+      prompt: Specify the namespace
+      private: no
+    - name: stack_prefix
+      prompt: Specify the prefix for the stacks
+      private: no
+    - name: primary_region
+      prompt: Specify the AWS region for primary storage
+      private: no
+    - name: replica_region_001
+      prompt: Specify the first AWS region for replica storage
+      private: no
+    - name: replica_region_002
+      prompt: Specify the second AWS region for replica storage
+      private: no
+
+  tasks:
+    - name: Stack for keys in {{ replica_region_001 }}
+      register: kms_keys_replica_001
+      amazon.aws.cloudformation:
+        stack_name: "{{ org_prefix }}-{{ stack_prefix }}-replica-001-keys"
+        region: "{{ replica_region_001 }}"
+        state: "present"
+        template: "../cloudformation/admin-account/tf-storage/cfn-kms-keys.yml"
+        template_parameters:
+          KeyName001: tfstate-replica-001
+          Prefix: "{{ stack_prefix }}"
+        termination_protection: yes
+        tags:
+          "sje:source": ansible
+          "sje:namespace": "{{ org_prefix }}"
+          "sje:prefix": "{{ stack_prefix }}"
+
+    - name: Stack for replica bucket in {{ replica_region_001 }}
+      register: s3_bucket_replica_001
+      amazon.aws.cloudformation:
+        stack_name: "{{ org_prefix }}-{{ stack_prefix }}-replica-001-s3"
+        region: "{{ replica_region_001 }}"
+        state: "present"
+        capabilities: CAPABILITY_NAMED_IAM
+        template: "../cloudformation/admin-account/tf-storage/cfn-s3-tf-state-replica.yml"
+        template_parameters:
+          KmsReplicaKeyArn: "{{ kms_keys_replica_001.stack_outputs.KmsKey001Arn }}"
+          Prefix: "{{ org_prefix }}-{{ stack_prefix }}-r001"
+        termination_protection: yes
+        tags:
+          "sje:source": ansible
+          "sje:namespace": "{{ org_prefix }}"
+          "sje:prefix": "{{ stack_prefix }}"
+
+    - name: Stack for keys in {{ replica_region_002 }}
+      register: kms_keys_replica_002
+      amazon.aws.cloudformation:
+        stack_name: "{{ org_prefix }}-{{ stack_prefix }}-replica-002-keys"
+        region: "{{ replica_region_002 }}"
+        state: "present"
+        template: "../cloudformation/admin-account/tf-storage/cfn-kms-keys.yml"
+        template_parameters:
+          KeyName001: tfstate-replica-002
+          Prefix: "{{ stack_prefix }}"
+        termination_protection: yes
+        tags:
+          "sje:source": ansible
+          "sje:namespace": "{{ org_prefix }}"
+          "sje:prefix": "{{ stack_prefix }}"
+
+    - name: Stack for replica bucket in {{ replica_region_002 }}
+      register: s3_bucket_replica_002
+      amazon.aws.cloudformation:
+        stack_name: "{{ org_prefix }}-{{ stack_prefix }}-replica-002-s3"
+        region: "{{ replica_region_002 }}"
+        state: "present"
+        capabilities: CAPABILITY_NAMED_IAM
+        template: "../cloudformation/admin-account/tf-storage/cfn-s3-tf-state-replica.yml"
+        template_parameters:
+          KmsReplicaKeyArn: "{{ kms_keys_replica_002.stack_outputs.KmsKey001Arn }}"
+          Prefix: "{{ org_prefix }}-{{ stack_prefix }}-r002"
+        termination_protection: yes
+        tags:
+          "sje:source": ansible
+          "sje:namespace": "{{ org_prefix }}"
+          "sje:prefix": "{{ stack_prefix }}"
+
+    - name: Stack for keys in {{ primary_region }}
+      register: kms_keys_primary
+      amazon.aws.cloudformation:
+        stack_name: "{{ org_prefix }}-{{ stack_prefix }}-primary-keys"
+        region: "{{ primary_region }}"
+        state: "present"
+        template: "../cloudformation/admin-account/tf-storage/cfn-kms-keys.yml"
+        template_parameters:
+          KeyName001: tf-state-primary
+          Prefix: "{{ stack_prefix }}"
+        termination_protection: yes
+        tags:
+          "sje:source": ansible
+          "sje:namespace": "{{ org_prefix }}"
+          "sje:prefix": "{{ stack_prefix }}"
+
+    - name: Stack for main bucket in {{ primary_region }}
+      amazon.aws.cloudformation:
+        stack_name: "{{ org_prefix }}-{{ stack_prefix }}-primary-s3"
+        region: "{{ primary_region }}"
+        state: "present"
+        capabilities: CAPABILITY_NAMED_IAM
+        template: "../cloudformation/admin-account/tf-storage/cfn-s3-tf-state-primary.yml"
+        template_parameters:
+          KmsReplica001KeyArn: "{{ kms_keys_replica_001.stack_outputs.KmsKey001Arn }}"
+          KmsReplica002KeyArn: "{{ kms_keys_replica_002.stack_outputs.KmsKey001Arn }}"
+          KmsSourceKeyArn: "{{ kms_keys_primary.stack_outputs.KmsKey001Arn }}"
+          Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
+          Replica001BucketArn: "{{ s3_bucket_replica_001.stack_outputs.ReplicaBucketArn }}"
+          Replica002BucketArn: "{{ s3_bucket_replica_002.stack_outputs.ReplicaBucketArn }}"
+          Replica001BucketRegion: "{{ replica_region_001 }}"
+          Replica002BucketRegion: "{{ replica_region_002 }}"
+        termination_protection: yes
+        tags:
+          "sje:source": ansible
+          "sje:namespace": "{{ org_prefix }}"
+          "sje:prefix": "{{ stack_prefix }}"
+
+    - name: Stack for DynamoDB in {{ primary_region }}
+      amazon.aws.cloudformation:
+        stack_name: "{{ org_prefix }}-{{ stack_prefix }}-primary-ddb"
+        region: "{{ primary_region }}"
+        state: "present"
+        template: "../cloudformation/admin-account/tf-storage/cfn-tf-lock-ddb.yml"
+        template_parameters:
+          KmsKeyArn: "{{ kms_keys_primary.stack_outputs.KmsKey001Arn }}"
+          Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
+        termination_protection: yes
+        tags:
+          "sje:source": ansible
+          "sje:namespace": "{{ org_prefix }}"
+          "sje:prefix": "{{ stack_prefix }}"

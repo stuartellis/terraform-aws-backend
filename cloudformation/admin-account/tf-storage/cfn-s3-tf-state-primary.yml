@@ -1,0 +1,220 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: |
+  Main bucket for Terraform state
+
+Parameters:
+  Prefix:
+    Type: String
+    Description: The prefix for AWS resource names
+  KmsSourceKeyArn:
+    Type: String
+    Description: The ARN of the key for the primary S3 bucket
+  KmsReplica001KeyArn:
+    Type: String
+    Description: The ARN of the key for the replica S3 bucket
+  Replica001BucketArn:
+    Type: String
+    Description: The ARN of the replica S3 bucket
+  Replica001BucketRegion:
+    Type: String
+    Description: The AWS region of the replica S3 bucket
+  KmsReplica002KeyArn:
+    Type: String
+    Description: The ARN of the key for the replica S3 bucket
+  Replica002BucketArn:
+    Type: String
+    Description: The ARN of the replica S3 bucket
+  Replica002BucketRegion:
+    Type: String
+    Description: The AWS region of the replica S3 bucket
+
+Resources:
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub ${Prefix}-primary-${AWS::AccountId}-${AWS::Region}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "aws:kms"
+              KMSMasterKeyID: !Ref KmsSourceKeyArn
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      ReplicationConfiguration:
+        Role: !GetAtt SourceBucketReplicationRole.Arn
+        Rules:
+          - Id: ReplicationToReplica001
+            Destination:
+              Bucket: !Ref Replica001BucketArn
+              EncryptionConfiguration:
+                ReplicaKmsKeyID: !Ref KmsReplica001KeyArn
+              Metrics:
+                Status: Enabled
+                EventThreshold:
+                  Minutes: 15
+              ReplicationTime:
+                Status: Enabled
+                Time:
+                  Minutes: 15
+            DeleteMarkerReplication:
+              Status: Enabled
+            SourceSelectionCriteria:
+              SseKmsEncryptedObjects:
+                Status: Enabled
+            Filter:
+              Prefix: ""
+            Priority: 1
+            Status: Enabled
+
+          - Id: ReplicationToReplica002
+            Destination:
+              Bucket: !Ref Replica002BucketArn
+              EncryptionConfiguration:
+                ReplicaKmsKeyID: !Ref KmsReplica002KeyArn
+              Metrics:
+                Status: Enabled
+                EventThreshold:
+                  Minutes: 15
+              ReplicationTime:
+                Status: Enabled
+                Time:
+                  Minutes: 15
+            DeleteMarkerReplication:
+              Status: Enabled
+            SourceSelectionCriteria:
+              SseKmsEncryptedObjects:
+                Status: Enabled
+            Filter:
+              Prefix: ""
+            Priority: 2
+            Status: Enabled
+
+  SourceBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SourceBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: Deny deletion of objects
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - "s3:DeleteObject"
+            Resource: !Sub "${SourceBucket.Arn}/*"
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - "s3:*"
+            Resource: !Sub "${SourceBucket.Arn}/*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": "false"
+          - Sid: Deny object uploads not using default encryption settings
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - "s3:PutObject"
+            Resource: !Sub "${SourceBucket.Arn}/*"
+            Condition:
+              # The Null-condition allows uploads without encryption information in the request
+              # (i.e., requests with default S3 bucket encryption) and the
+              # StringNotEquals-condition denies uploads with invalid encryption information.
+              # Note that using StringNotEqualsIfExists doesn’t work for uploads without encryption information.
+              # The condition evaluates to true and denies the upload because of the Deny-effect.
+              "Null":
+                s3:x-amz-server-side-encryption: false
+              StringNotEqualsIfExists:
+                s3:x-amz-server-side-encryption:
+                  - "AES256"
+                  - "aws:kms"
+
+  SourceBucketReplicationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-${AWS::Region}-replication"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: s3-replication-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - s3:ListBucket
+                  - s3:GetReplicationConfiguration
+                  - s3:GetObjectVersionForReplication
+                  - s3:GetObjectVersionAcl
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:s3:::${Prefix}-primary-${AWS::AccountId}-${AWS::Region}"
+                  - !Sub "arn:${AWS::Partition}:s3:::${Prefix}-primary-${AWS::AccountId}-${AWS::Region}/*"
+
+              - Action:
+                  - s3:ReplicateObject
+                  - s3:ReplicateDelete
+                  - s3:ReplicateTags
+                  - s3:GetObjectVersionTagging
+                Effect: Allow
+                Condition:
+                  StringLikeIfExists:
+                    s3:x-amz-server-side-encryption:
+                      - aws:kms
+                      - AES256
+                    s3:x-amz-server-side-encryption-aws-kms-key-id:
+                      - !Ref KmsReplica001KeyArn
+                      - !Ref KmsReplica002KeyArn
+                Resource:
+                  - !Sub "${Replica001BucketArn}/*"
+                  - !Sub "${Replica002BucketArn}/*"
+
+              - Action: kms:Decrypt
+                Effect: Allow
+                Condition:
+                  StringLike:
+                    kms:ViaService: !Sub "s3.${AWS::Region}.amazonaws.com"
+                    kms:EncryptionContext:aws:s3:arn:
+                      - !Sub "arn:${AWS::Partition}:s3:::${Prefix}-primary-${AWS::AccountId}-${AWS::Region}/*"
+                Resource:
+                  - !Ref KmsSourceKeyArn
+
+              - Action: kms:Encrypt
+                Effect: Allow
+                Condition:
+                  StringLike:
+                    kms:ViaService: !Sub "s3.${Replica001BucketRegion}.amazonaws.com"
+                    kms:EncryptionContext:aws:s3:arn:
+                      - !Sub "${Replica001BucketArn}/*"
+                Resource:
+                  - !Ref KmsReplica001KeyArn
+
+              - Action: kms:Encrypt
+                Effect: Allow
+                Condition:
+                  StringLike:
+                    kms:ViaService: !Sub "s3.${Replica002BucketRegion}.amazonaws.com"
+                    kms:EncryptionContext:aws:s3:arn:
+                      - !Sub "${Replica002BucketArn}/*"
+                Resource:
+                  - !Ref KmsReplica002KeyArn
+
+Outputs:
+  SourceBucketArn:
+    Value: !GetAtt SourceBucket.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-s3-primary-arn"

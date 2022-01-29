@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: |
+  User-managed KMS key
+Parameters:
+  Prefix:
+    Type: String
+    Description: The prefix for AWS resource names
+  KeyName001:
+    Type: String
+    Description: The name of the KMS key
+
+Resources:
+  KmsKey001:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: !Sub ${Prefix} ${KeyName001} key
+      Enabled: True
+      KeyPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: kms:*
+            Resource: "*" # Resource must be specified as * in key policies
+            Principal:
+              AWS: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+      EnableKeyRotation: true
+      KeySpec: SYMMETRIC_DEFAULT
+      PendingWindowInDays: 7 # Default is 30 days
+
+  KmsKey001Alias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${Prefix}/${KeyName001}" # Aliases must begin with alias/
+      TargetKeyId: !Ref KmsKey001
+
+Outputs:
+  KmsKey001AliasName:
+    Value: !Ref KmsKey001Alias
+    Export:
+      Name: !Sub "${AWS::StackName}-kms-key-alias"
+  KmsKey001Arn:
+    Value: !GetAtt KmsKey001.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-kms-key-arn"

@@ -1,0 +1,84 @@
+---
+- name: Deploy CloudFormation for automated Terraform access
+  hosts: localhost
+  vars_prompt:
+    - name: managing_account_id
+      prompt: Specify the AWS account number for the role
+      private: no
+    - name: org_prefix
+      prompt: Specify the namespace
+      private: no
+    - name: stack_prefix
+      prompt: Specify the prefix for the stacks
+      private: no
+    - name: kms_key_arn
+      prompt: Specify the ARN of the KMS key for the Terraform state
+      private: no
+    - name: s3_bucket_arn
+      prompt: Specify the ARN of the S3 bucket for the Terraform state
+      private: no
+    - name: ddb_table_arn
+      prompt: Specify the ARN of the DynamoDB table for Terraform locking
+      private: no
+    - name: same_account_exec_role
+      prompt: Specify the ARN of the role for running Terraform in the same AWS account
+      private: no
+    - name: account_0001_exec_role
+      prompt: Specify the ARN of the role for running Terraform in another AWS account
+      private: no
+
+  tasks:
+    - name: Stack for IAM role to access Terraform backend
+      register: iam_backend_access_role
+      amazon.aws.cloudformation:
+        stack_name: "{{ org_prefix }}-{{ stack_prefix }}-role"
+        region: us-east-1
+        state: "present"
+        template: "../cloudformation/admin-account/tf-storage-access/cfn-tf-storage-role.yml"
+        template_parameters:
+          ManagingAccountID: "{{ managing_account_id }}"
+          Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
+          TfKmsBackendKeyArn: "{{ kms_key_arn }}"
+          TfS3StorageArn: "{{ s3_bucket_arn }}"
+          TfDdbLockingArn: "{{ ddb_table_arn }}"
+        termination_protection: yes
+        tags:
+          "sje:source": ansible
+          "sje:namespace": "{{ org_prefix }}"
+          "sje:prefix": "{{ stack_prefix }}"
+
+    - name: Stack for IAM group to use Terraform
+      register: iam_group
+      amazon.aws.cloudformation:
+        stack_name: "{{ org_prefix }}-{{ stack_prefix }}-group"
+        region: us-east-1
+        state: "present"
+        template: "../cloudformation/admin-account/tf-storage-access/cfn-tf-access-group.yml"
+        template_parameters:
+          Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
+          TfArnBackendAccessRole: "{{ iam_backend_access_role.stack_outputs.StorageRoleArn }}"
+          TfArnSameAccountExecRole: "{{ same_account_exec_role }}"
+          TfArnExecRole0001: "{{ account_0001_exec_role }}"
+        termination_protection: yes
+        tags:
+          "sje:source": ansible
+          "sje:namespace": "{{ org_prefix }}"
+          "sje:purpose": "noninteractive"
+          "sje:prefix": "{{ stack_prefix }}"
+
+    - name: Stack for IAM user to use Terraform from Azure DevOps
+      amazon.aws.cloudformation:
+        stack_name: "{{ org_prefix }}-{{ stack_prefix }}-ado-user"
+        region: us-east-1
+        state: "present"
+        template: "../cloudformation/admin-account/tf-identity/cfn-tf-access-user.yml"
+        template_parameters:
+          Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
+          TfAccessGroup: "{{ iam_group.stack_outputs.TfAccessGroup }}"
+          UserName: ado
+        termination_protection: yes
+        tags:
+          "sje:source": ansible
+          "sje:namespace": "{{ org_prefix }}"
+          "sje:purpose": "noninteractive"
+          "sje:prefix": "{{ stack_prefix }}"

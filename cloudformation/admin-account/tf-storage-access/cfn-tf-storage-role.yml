@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: |
+  AWS resources for accessing a Terraform backend
+Parameters:
+  Prefix:
+    Type: String
+    Description: The prefix for AWS resource names
+  ManagingAccountID:
+    Type: Number
+    Description: AWS account number that uses this role
+  TfKmsBackendKeyArn:
+    Type: String
+    Description: The ARN of the KMS key for the Terraform state
+  TfS3StorageArn:
+    Type: String
+    Description: The ARN of the S3 bucket for the Terraform state
+  TfDdbLockingArn:
+    Type: String
+    Description: The ARN of the DynamoDB table for Terraform locking
+
+Resources:
+  StorageRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${Prefix}-role
+      Description: !Sub Terraform storage access for ${Prefix}
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              AWS: !Sub "arn:${AWS::Partition}:iam::${ManagingAccountID}:root"
+            Action:
+              - "sts:AssumeRole"
+  TfBackendAccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub ${Prefix}-tf-backend
+      Roles:
+        - !Ref StorageRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource:
+              - !Ref TfKmsBackendKeyArn
+          - Effect: Allow
+            Action:
+              - s3:GetBucketLocation
+              - s3:List*
+            Resource:
+              - "Fn::Join":
+                  - "/"
+                  - - !Ref TfS3StorageArn
+          - Effect: Allow
+            Action:
+              - s3:DeleteObject
+              - s3:GetObject
+              - s3:PutObject
+            Resource:
+              - "Fn::Join":
+                  - "/"
+                  - - !Ref TfS3StorageArn
+                    - "*"
+          - Effect: Allow
+            Action:
+              - dynamodb:DeleteItem
+              - dynamodb:DescribeTable
+              - dynamodb:GetItem
+              - dynamodb:PutItem
+            Resource:
+              - !Ref TfDdbLockingArn
+
+Outputs:
+  StorageRoleArn:
+    Value: !GetAtt StorageRole.Arn
