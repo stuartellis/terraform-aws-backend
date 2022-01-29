@@ -41,16 +41,16 @@
           "{{ org_prefix }}:purpose": "noninteractive"
           "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
 
-    - name: Stack for IAM user to use Terraform from Azure DevOps
+    - name: Stack for IAM user to use Terraform from CI
       amazon.aws.cloudformation:
-        stack_name: "{{ org_prefix }}-{{ stack_prefix }}-ado-user"
+        stack_name: "{{ org_prefix }}-{{ stack_prefix }}-ci-user"
         region: us-east-1
         state: "present"
         template: "../cloudformation/managing-account/tf-identity/cfn-tf-access-user.yml"
         template_parameters:
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
           TfAccessGroup: "{{ iam_group.stack_outputs.TfAccessGroup }}"
-          UserName: ado
+          UserName: ci
         termination_protection: yes
         tags:
           "{{ org_prefix }}:source": ansible
