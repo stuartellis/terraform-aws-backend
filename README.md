@@ -2,7 +2,7 @@
 
 Tooling to deploy an [AWS backend for Terraform state](https://www.terraform.io/language/settings/backends/s3), using [Ansible](https://www.ansible.com/) and CloudFormation.
 
-This deploys a set of replicated S3 buckets and a DynamoDB table. All storage is encrypted with KMS customer-managed keys.
+This deploys a set of replicated S3 buckets and a DynamoDB table. Each bucket has [object versioning](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html) enabled, so that previous versions of the state files can be restored. All storage is encrypted with KMS customer-managed keys.
 
 To increase the safety of the Terraform state, the policy on the main S3 bucket prevents objects from being deleted.
 
