@@ -17,6 +17,14 @@
     - name: replica_region_002
       prompt: Specify the second AWS region for replica storage
       private: no
+  vars:
+    stack_tags:
+      - key: "{{ org_prefix }}:source"
+        value: ansible
+      - key: "{{ org_prefix }}:namespace"
+        value: "{{ org_prefix }}"
+      - key: "{{ org_prefix }}:prefix"
+        value: "{{ stack_prefix }}"
 
   tasks:
     - name: Stack for keys in {{ replica_region_001 }}
@@ -30,10 +38,7 @@
           KeyName001: tfstate-replica-001
           Prefix: "{{ stack_prefix }}"
         termination_protection: yes
-        tags:
-          "{{ org_prefix }}:source": ansible
-          "{{ org_prefix }}:namespace": "{{ org_prefix }}"
-          "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
+        tags: "{{ stack_tags | items2dict }}"
 
     - name: Stack for replica bucket in {{ replica_region_001 }}
       register: s3_bucket_replica_001
@@ -47,10 +52,7 @@
           KmsReplicaKeyArn: "{{ kms_keys_replica_001.stack_outputs.KmsKey001Arn }}"
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}-r001"
         termination_protection: yes
-        tags:
-          "{{ org_prefix }}:source": ansible
-          "{{ org_prefix }}:namespace": "{{ org_prefix }}"
-          "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
+        tags: "{{ stack_tags | items2dict }}"
 
     - name: Stack for keys in {{ replica_region_002 }}
       register: kms_keys_replica_002
@@ -63,10 +65,7 @@
           KeyName001: tfstate-replica-002
           Prefix: "{{ stack_prefix }}"
         termination_protection: yes
-        tags:
-          "{{ org_prefix }}:source": ansible
-          "{{ org_prefix }}:namespace": "{{ org_prefix }}"
-          "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
+        tags: "{{ stack_tags | items2dict }}"
 
     - name: Stack for replica bucket in {{ replica_region_002 }}
       register: s3_bucket_replica_002
@@ -80,10 +79,7 @@
           KmsReplicaKeyArn: "{{ kms_keys_replica_002.stack_outputs.KmsKey001Arn }}"
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}-r002"
         termination_protection: yes
-        tags:
-          "{{ org_prefix }}:source": ansible
-          "{{ org_prefix }}:namespace": "{{ org_prefix }}"
-          "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
+        tags: "{{ stack_tags | items2dict }}"
 
     - name: Stack for keys in {{ primary_region }}
       register: kms_keys_primary
@@ -96,12 +92,9 @@
           KeyName001: tf-state-primary
           Prefix: "{{ stack_prefix }}"
         termination_protection: yes
-        tags:
-          "{{ org_prefix }}:source": ansible
-          "{{ org_prefix }}:namespace": "{{ org_prefix }}"
-          "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
+        tags: "{{ stack_tags | items2dict }}"
 
-    - name: Stack for main bucket in {{ primary_region }}
+    - name: Stack for primary bucket in {{ primary_region }}
       amazon.aws.cloudformation:
         stack_name: "{{ org_prefix }}-{{ stack_prefix }}-primary-s3"
         region: "{{ primary_region }}"
@@ -118,10 +111,7 @@
           Replica001BucketRegion: "{{ replica_region_001 }}"
           Replica002BucketRegion: "{{ replica_region_002 }}"
         termination_protection: yes
-        tags:
-          "{{ org_prefix }}:source": ansible
-          "{{ org_prefix }}:namespace": "{{ org_prefix }}"
-          "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
+        tags: "{{ stack_tags | items2dict }}"
 
     - name: Stack for DynamoDB in {{ primary_region }}
       amazon.aws.cloudformation:
@@ -133,7 +123,4 @@
           KmsKeyArn: "{{ kms_keys_primary.stack_outputs.KmsKey001Arn }}"
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
         termination_protection: yes
-        tags:
-          "{{ org_prefix }}:source": ansible
-          "{{ org_prefix }}:namespace": "{{ org_prefix }}"
-          "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
+        tags: "{{ stack_tags | items2dict }}"

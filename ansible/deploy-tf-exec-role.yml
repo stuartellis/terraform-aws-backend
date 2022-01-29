@@ -11,6 +11,14 @@
     - name: stack_prefix
       prompt: Specify the prefix for the stacks
       private: no
+  vars:
+    stack_tags:
+      - key: "{{ org_prefix }}:source"
+        value: ansible
+      - key: "{{ org_prefix }}:namespace"
+        value: "{{ org_prefix }}"
+      - key: "{{ org_prefix }}:prefix"
+        value: "{{ stack_prefix }}"
 
   tasks:
     - name: Stack for IAM role to run Terraform
@@ -24,7 +32,4 @@
           ManagingAccountID: "{{ managing_account_id }}"
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
         termination_protection: yes
-        tags:
-          "{{ org_prefix }}:source": ansible
-          "{{ org_prefix }}:namespace": "{{ org_prefix }}"
-          "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
+        tags: "{{ stack_tags | items2dict }}"

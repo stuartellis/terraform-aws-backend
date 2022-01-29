@@ -37,7 +37,8 @@ Resources:
       BucketName: !Sub ${Prefix}-primary-${AWS::AccountId}-${AWS::Region}
       BucketEncryption:
         ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
+          - BucketKeyEnabled: true
+            ServerSideEncryptionByDefault:
               SSEAlgorithm: "aws:kms"
               KMSMasterKeyID: !Ref KmsSourceKeyArn
       AccessControl: Private

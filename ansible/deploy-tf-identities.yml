@@ -11,24 +11,20 @@
     - name: stack_prefix
       prompt: Specify the prefix for the stacks
       private: no
-    - name: backend_access_role
-      prompt: Specify the ARN of the role for accessing the Terraform backend
+    - name: iam_role_arns
+      prompt: Specify the ARNs of the role for accessing the Terraform backend
       private: no
-    - name: same_account_exec_role
-      prompt: Specify the ARN of the role for running Terraform in the same AWS account
-      private: no
-    - name: account_0001_exec_role
-      prompt: Specify the ARN of the role for running Terraform in another AWS account
-      private: no
+
+  vars:
+    stack_tags:
+      - key: "{{ org_prefix }}:source"
+        value: ansible
+      - key: "{{ org_prefix }}:namespace"
+        value: "{{ org_prefix }}"
+      - key: "{{ org_prefix }}:prefix"
+        value: "{{ stack_prefix }}"
 
   tasks:
-    - name: Get list of IAM roles
-      set_fact:
-        iam_role_arns:
-          - backend_access_role
-          - same_account_exec_role
-          - account_0001_exec_role
-
     - name: Stack for IAM group to use Terraform
       register: iam_group
       amazon.aws.cloudformation:
@@ -38,15 +34,11 @@
         template: "../cloudformation/managing-account/tf-identities/cfn-tf-access-group.yml"
         template_parameters:
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
-          RoleArns: "{{ iam_role_arns | join(',') }}"
+          RoleArns: "{{ iam_role_arns }}"
         termination_protection: yes
-        tags:
-          "{{ org_prefix }}:source": ansible
-          "{{ org_prefix }}:namespace": "{{ org_prefix }}"
-          "{{ org_prefix }}:purpose": "automation"
-          "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
+        tags: "{{ stack_tags | items2dict }}"
 
-    - name: Stack for IAM user to use Terraform from CI
+    - name: Stack for IAM user to use Terraform with CI
       amazon.aws.cloudformation:
         stack_name: "{{ org_prefix }}-{{ stack_prefix }}-ci-user"
         region: us-east-1
@@ -57,8 +49,4 @@
           TfAccessGroup: "{{ iam_group.stack_outputs.TfAccessGroup }}"
           UserName: ci
         termination_protection: yes
-        tags:
-          "{{ org_prefix }}:source": ansible
-          "{{ org_prefix }}:namespace": "{{ org_prefix }}"
-          "{{ org_prefix }}:purpose": "automation"
-          "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
+        tags: "{{ stack_tags | items2dict }}"

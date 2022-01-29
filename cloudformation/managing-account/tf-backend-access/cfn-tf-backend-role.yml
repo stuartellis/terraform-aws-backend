@@ -75,5 +75,5 @@ Resources:
               - !Ref TfDdbLockingArn
 
 Outputs:
-  StorageRoleArn:
+  BackendAccessRoleArn:
     Value: !GetAtt StorageRole.Arn

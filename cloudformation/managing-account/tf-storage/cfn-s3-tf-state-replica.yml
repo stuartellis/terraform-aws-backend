@@ -19,7 +19,8 @@ Resources:
       BucketName: !Sub ${Prefix}-replica-${AWS::AccountId}-${AWS::Region}
       BucketEncryption:
         ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
+          - BucketKeyEnabled: true
+            ServerSideEncryptionByDefault:
               SSEAlgorithm: "aws:kms"
               KMSMasterKeyID: !Ref KmsReplicaKeyArn
       AccessControl: Private
