@@ -56,3 +56,4 @@ To run the Ansible playbook to deploy Terraform access for CI automation, first 
 ## Resources
 
 - [CloudFormation for a Terraform backend, by Tibor Hercz](https://github.com/tiborhercz/tf-state-backend-s3-cloudformation) - An existing implementation, using just CloudFormation
+- [Managing Terraform Remote State with CloudFormation, by Chris Kent](https://thirstydeveloper.io/tf-skeleton/2021/02/25/part-6-protecting-state.html) - Part of a series on setting up Terraform
