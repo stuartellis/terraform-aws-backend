@@ -25,7 +25,7 @@
         stack_name: "{{ org_prefix }}-{{ stack_prefix }}-replica-001-keys"
         region: "{{ replica_region_001 }}"
         state: "present"
-        template: "../cloudformation/admin-account/tf-storage/cfn-kms-keys.yml"
+        template: "../cloudformation/managing-account/tf-storage/cfn-kms-keys.yml"
         template_parameters:
           KeyName001: tfstate-replica-001
           Prefix: "{{ stack_prefix }}"
@@ -42,7 +42,7 @@
         region: "{{ replica_region_001 }}"
         state: "present"
         capabilities: CAPABILITY_NAMED_IAM
-        template: "../cloudformation/admin-account/tf-storage/cfn-s3-tf-state-replica.yml"
+        template: "../cloudformation/managing-account/tf-storage/cfn-s3-tf-state-replica.yml"
         template_parameters:
           KmsReplicaKeyArn: "{{ kms_keys_replica_001.stack_outputs.KmsKey001Arn }}"
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}-r001"
@@ -58,7 +58,7 @@
         stack_name: "{{ org_prefix }}-{{ stack_prefix }}-replica-002-keys"
         region: "{{ replica_region_002 }}"
         state: "present"
-        template: "../cloudformation/admin-account/tf-storage/cfn-kms-keys.yml"
+        template: "../cloudformation/managing-account/tf-storage/cfn-kms-keys.yml"
         template_parameters:
           KeyName001: tfstate-replica-002
           Prefix: "{{ stack_prefix }}"
@@ -75,7 +75,7 @@
         region: "{{ replica_region_002 }}"
         state: "present"
         capabilities: CAPABILITY_NAMED_IAM
-        template: "../cloudformation/admin-account/tf-storage/cfn-s3-tf-state-replica.yml"
+        template: "../cloudformation/managing-account/tf-storage/cfn-s3-tf-state-replica.yml"
         template_parameters:
           KmsReplicaKeyArn: "{{ kms_keys_replica_002.stack_outputs.KmsKey001Arn }}"
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}-r002"
@@ -91,7 +91,7 @@
         stack_name: "{{ org_prefix }}-{{ stack_prefix }}-primary-keys"
         region: "{{ primary_region }}"
         state: "present"
-        template: "../cloudformation/admin-account/tf-storage/cfn-kms-keys.yml"
+        template: "../cloudformation/managing-account/tf-storage/cfn-kms-keys.yml"
         template_parameters:
           KeyName001: tf-state-primary
           Prefix: "{{ stack_prefix }}"
@@ -107,7 +107,7 @@
         region: "{{ primary_region }}"
         state: "present"
         capabilities: CAPABILITY_NAMED_IAM
-        template: "../cloudformation/admin-account/tf-storage/cfn-s3-tf-state-primary.yml"
+        template: "../cloudformation/managing-account/tf-storage/cfn-s3-tf-state-primary.yml"
         template_parameters:
           KmsReplica001KeyArn: "{{ kms_keys_replica_001.stack_outputs.KmsKey001Arn }}"
           KmsReplica002KeyArn: "{{ kms_keys_replica_002.stack_outputs.KmsKey001Arn }}"
@@ -128,7 +128,7 @@
         stack_name: "{{ org_prefix }}-{{ stack_prefix }}-primary-ddb"
         region: "{{ primary_region }}"
         state: "present"
-        template: "../cloudformation/admin-account/tf-storage/cfn-tf-lock-ddb.yml"
+        template: "../cloudformation/managing-account/tf-storage/cfn-tf-lock-ddb.yml"
         template_parameters:
           KmsKeyArn: "{{ kms_keys_primary.stack_outputs.KmsKey001Arn }}"
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}"

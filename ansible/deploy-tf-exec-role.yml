@@ -18,7 +18,7 @@
         stack_name: "{{ org_prefix }}-{{ stack_prefix }}-role"
         region: us-east-1
         state: "present"
-        template: "../cloudformation/admin-account/tf-exec/cfn-tf-exec-role.yml"
+        template: "../cloudformation/managing-account/tf-exec/cfn-tf-exec-role.yml"
         template_parameters:
           ManagedPolicyName: AdministratorAccess
           ManagingAccountID: "{{ managing_account_id }}"

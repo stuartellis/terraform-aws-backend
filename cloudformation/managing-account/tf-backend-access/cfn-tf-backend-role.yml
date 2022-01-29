@@ -22,7 +22,7 @@ Resources:
   StorageRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${Prefix}-role
+      RoleName: !Sub ${Prefix}-backend-access-role
       Description: !Sub Terraform storage access for ${Prefix}
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
