@@ -25,6 +25,6 @@
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
         termination_protection: yes
         tags:
-          "custom:source": ansible
-          "custom:namespace": "{{ org_prefix }}"
-          "custom:prefix": "{{ stack_prefix }}"
+          "{{ org_prefix }}:source": ansible
+          "{{ org_prefix }}:namespace": "{{ org_prefix }}"
+          "{{ org_prefix }}:prefix": "{{ stack_prefix }}"
