@@ -12,7 +12,9 @@ Ansible provides a convenient way to deploy sets of CloudFormation templates tog
 
 ## Design
 
-This assumes that you have at least two AWS accounts:
+This project deliberately does not follow a standard directory structure for Ansible. By design it completely separates the files for Ansible and CloudFormation.
+
+It assumes that you have at least two AWS accounts:
 
 - A *managing* AWS account that will contain the Terraform backend
 - One or more *managed* AWS accounts that will contain resources that will be managed by Terraform
