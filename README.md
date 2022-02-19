@@ -34,10 +34,7 @@ Run these commands to install Ansible:
     pip3 --user pipx
     pipx install ansible-core
     pipx inject ansible-core boto3
-
-Install the extra [Ansible collection for AWS](https://docs.ansible.com/ansible/latest/collections/amazon/aws/index.html):
-
-    ansible-galaxy collection install amazon.aws
+    ansible-galaxy install -r requirements.yml
 
 ## Usage
 
