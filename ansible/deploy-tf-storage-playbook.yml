@@ -4,19 +4,19 @@
   vars_prompt:
     - name: org_prefix
       prompt: Specify the namespace
-      private: no
+      private: false
     - name: stack_prefix
       prompt: Specify the prefix for the stacks
-      private: no
+      private: false
     - name: primary_region
       prompt: Specify the AWS region for primary storage
-      private: no
+      private: false
     - name: replica_region_001
       prompt: Specify the first AWS region for replica storage
-      private: no
+      private: false
     - name: replica_region_002
       prompt: Specify the second AWS region for replica storage
-      private: no
+      private: false
   vars:
     stack_tags:
       - key: "{{ org_prefix }}:source"
@@ -37,7 +37,7 @@
         template_parameters:
           KeyName001: tfstate-replica-001
           Prefix: "{{ stack_prefix }}"
-        termination_protection: yes
+        termination_protection: true
         tags: "{{ stack_tags | items2dict }}"
 
     - name: Stack for replica bucket in {{ replica_region_001 }}
@@ -51,7 +51,7 @@
         template_parameters:
           KmsReplicaKeyArn: "{{ kms_keys_replica_001.stack_outputs.KmsKey001Arn }}"
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}-r001"
-        termination_protection: yes
+        termination_protection: true
         tags: "{{ stack_tags | items2dict }}"
 
     - name: Stack for keys in {{ replica_region_002 }}
@@ -64,7 +64,7 @@
         template_parameters:
           KeyName001: tfstate-replica-002
           Prefix: "{{ stack_prefix }}"
-        termination_protection: yes
+        termination_protection: true
         tags: "{{ stack_tags | items2dict }}"
 
     - name: Stack for replica bucket in {{ replica_region_002 }}
@@ -78,7 +78,7 @@
         template_parameters:
           KmsReplicaKeyArn: "{{ kms_keys_replica_002.stack_outputs.KmsKey001Arn }}"
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}-r002"
-        termination_protection: yes
+        termination_protection: true
         tags: "{{ stack_tags | items2dict }}"
 
     - name: Stack for keys in {{ primary_region }}
@@ -91,7 +91,7 @@
         template_parameters:
           KeyName001: tf-state-primary
           Prefix: "{{ stack_prefix }}"
-        termination_protection: yes
+        termination_protection: true
         tags: "{{ stack_tags | items2dict }}"
 
     - name: Stack for primary bucket in {{ primary_region }}
@@ -110,7 +110,7 @@
           Replica002BucketArn: "{{ s3_bucket_replica_002.stack_outputs.ReplicaBucketArn }}"
           Replica001BucketRegion: "{{ replica_region_001 }}"
           Replica002BucketRegion: "{{ replica_region_002 }}"
-        termination_protection: yes
+        termination_protection: true
         tags: "{{ stack_tags | items2dict }}"
 
     - name: Stack for DynamoDB in {{ primary_region }}
@@ -122,5 +122,5 @@
         template_parameters:
           KmsKeyArn: "{{ kms_keys_primary.stack_outputs.KmsKey001Arn }}"
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
-        termination_protection: yes
+        termination_protection: true
         tags: "{{ stack_tags | items2dict }}"

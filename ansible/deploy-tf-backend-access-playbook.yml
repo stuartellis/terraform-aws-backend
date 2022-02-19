@@ -4,22 +4,22 @@
   vars_prompt:
     - name: managing_account_id
       prompt: Specify the AWS account number for the role
-      private: no
+      private: false
     - name: org_prefix
       prompt: Specify the namespace
-      private: no
+      private: false
     - name: stack_prefix
       prompt: Specify the prefix for the stacks
-      private: no
+      private: false
     - name: kms_key_arn
       prompt: Specify the ARN of the KMS key for the Terraform state
-      private: no
+      private: false
     - name: s3_bucket_arn
       prompt: Specify the ARN of the S3 bucket for the Terraform state
-      private: no
+      private: false
     - name: ddb_table_arn
       prompt: Specify the ARN of the DynamoDB table for Terraform locking
-      private: no
+      private: false
   vars:
     stack_tags:
       - key: "{{ org_prefix }}:source"
@@ -42,5 +42,5 @@
           TfKmsBackendKeyArn: "{{ kms_key_arn }}"
           TfS3StorageArn: "{{ s3_bucket_arn }}"
           TfDdbLockingArn: "{{ ddb_table_arn }}"
-        termination_protection: yes
+        termination_protection: true
         tags: "{{ stack_tags | items2dict }}"

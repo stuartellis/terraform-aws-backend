@@ -4,16 +4,16 @@
   vars_prompt:
     - name: managing_account_id
       prompt: Specify the AWS account number for the role
-      private: no
+      private: false
     - name: org_prefix
       prompt: Specify the namespace
-      private: no
+      private: false
     - name: stack_prefix
       prompt: Specify the prefix for the stacks
-      private: no
+      private: false
     - name: iam_role_arns
       prompt: Specify the ARNs of the role for accessing the Terraform backend
-      private: no
+      private: false
 
   vars:
     stack_tags:
@@ -35,7 +35,7 @@
         template_parameters:
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
           RoleArns: "{{ iam_role_arns }}"
-        termination_protection: yes
+        termination_protection: true
         tags: "{{ stack_tags | items2dict }}"
 
     - name: Stack for IAM user to use Terraform with CI
@@ -48,5 +48,5 @@
           Prefix: "{{ org_prefix }}-{{ stack_prefix }}"
           TfAccessGroup: "{{ iam_group.stack_outputs.TfAccessGroup }}"
           UserName: ci
-        termination_protection: yes
+        termination_protection: true
         tags: "{{ stack_tags | items2dict }}"
